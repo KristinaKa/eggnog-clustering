@@ -10,7 +10,7 @@ $mmseqs cluster eggnog_seqs.db $clusters_file_name.db tmpdir/ --threads 20 -c 0.
 
 # 2. Export to fasta and/or tsv
 $mmseqs createseqfiledb eggnog_seqs.db $clusters_file_name.db clu_seq 
-$mmseqs result2flat eggnog_seqs.db $clusters_file_name.db clu_seq clu_seq.fa
+$mmseqs result2flat eggnog_seqs.db eggnog_seqs.db clu_seq clu_seq.fa
 $mmseqs createtsv eggnog_seqs.db eggnog_seqs.db $clusters_file_name.db $clusters_file_name.tsv 
 
 # 3. Compute stats
