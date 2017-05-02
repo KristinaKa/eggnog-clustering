@@ -1,6 +1,5 @@
 from collections import defaultdict
 import hashlib
-import numpy as np
 from datetime import datetime
 
 startTime = datetime.now()
@@ -12,33 +11,26 @@ mmseqs_cls_F = open("/g/bork1/kastano/eggnog_clustering/eggnog_clusters.c00.s7.c
 m_clusters = defaultdict(list)
 
 # getting all mmseqs clusters in a dict
-i=0
+
 for line in mmseqs_cls_F:
-    i+=1
     fields = line.rstrip().split("\t")
     cluster = fields[0]
     members = map(str.strip, fields[1].split(","))
     if len(members) > 1:
         m_clusters[cluster] = set(members)
-    if i%10000==0:
-        print "here now", cluster
 mmseqs_cls_F.close()
 
-print len(m_clusters)
-
 # getting all eggnog clusters in a dict
-i=0
+
 e_clusters = {}
 for line in eggnog_cls_F:
-    i+=1
     fields = line.rstrip().split("\t")
     cluster = fields[1]
     members = map(str.strip, fields[5].split(","))
     e_clusters[cluster] = set(members)
-    if i%10000==0:
-        print "here now", cluster
 eggnog_cls_F.close()
 
+print "clusters obtained"
 
 # converting to hashes
 m_hashes = {}
@@ -70,6 +62,7 @@ def compared_clusters(e_clusters, m_clusters):
     e_clusters = {eclu_name: set(eclu_members), ...}
     m_clusters = {mclu_name: set(mclu_members), ...}
     """
+    RESULTS_F = open("clusters_comparison.tsv","w")
 
     # precalculate where does it appear each individual
     # sequence name (what clusters)
@@ -82,7 +75,8 @@ def compared_clusters(e_clusters, m_clusters):
     for clu_name, members in m_clusters.iteritems():
         for seq in members:
             seq2mcluster[seq].append(clu_name)
-    
+
+
     print "members mapping to clusters done"
 
     # For each MMseqs clusters, lets compare content only against the subset of
@@ -93,14 +87,15 @@ def compared_clusters(e_clusters, m_clusters):
     for m_clu, m_members in m_clusters.iteritems():
         related_eggnog_clusters = set()
         for member in m_members:
-            e_clusters = seq2ecluster.get(member, [])
-            related_eggnog_clusters.update(e_clusters)
-
+            member_e_clusters = seq2ecluster.get(member, [])
+            related_eggnog_clusters.update(member_e_clusters)
+            
         for e_clu in related_eggnog_clusters:
+            print e_clu
             common = len(m_members & e_clusters[e_clu])
             m_missing = len(m_members - e_clusters[e_clu])
-            e_missing = len(m_members - e_clusters[e_clu])
-            print m_clu, len(related_eggnog_clusters), e_clu, common, m_missing, e_missing
+            e_missing = len(e_clusters[e_clu] - m_members)
+            print >> RESULTS_F, "\t".join(map(str, (m_clu, len(related_eggnog_clusters), e_clu, common, m_missing, e_missing)))
 
 compared_clusters(e_clusters, m_clusters)
 
