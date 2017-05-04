@@ -1,11 +1,21 @@
 from collections import defaultdict
 import hashlib
+import numpy as np
 from datetime import datetime
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', dest='cls_tsv_file', type=str,
+                   help='clusters tsv file')
+parser.add_argument('-o', dest='comparison_file', type=str,
+                   help='clusters fasta file')
+
+args = parser.parse_args()
 
 startTime = datetime.now()
 
 eggnog_cls_F = open("/g/bork1/kastano/eggnog_clustering/NOG.members.tsv", "r")
-mmseqs_cls_F = open("/g/bork1/kastano/eggnog_clustering/eggnog_clusters.c00.s7.clusters_per_line","r")
+mmseqs_cls_F = open(args.cls_tsv_file,"r")
 
 
 m_clusters = defaultdict(list)
@@ -57,12 +67,12 @@ print len(m_clusters), len(e_clusters)
 
 t1 = datetime.now()
 
-def compared_clusters(e_clusters, m_clusters):
+def compared_clusters(e_clusters, m_clusters, f_name):
     """
     e_clusters = {eclu_name: set(eclu_members), ...}
     m_clusters = {mclu_name: set(mclu_members), ...}
     """
-    RESULTS_F = open("clusters_comparison.tsv","w")
+    RESULTS_F = open(f_name,"w")
 
     # precalculate where does it appear each individual
     # sequence name (what clusters)
@@ -97,7 +107,7 @@ def compared_clusters(e_clusters, m_clusters):
             e_missing = len(e_clusters[e_clu] - m_members)
             print >> RESULTS_F, "\t".join(map(str, (m_clu, len(related_eggnog_clusters), e_clu, common, m_missing, e_missing)))
 
-compared_clusters(e_clusters, m_clusters)
+compared_clusters(e_clusters, m_clusters, args.comparison_file)
 
 
 print "comparison done in ", datetime.now() - t1
